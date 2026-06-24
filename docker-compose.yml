@@ -1,0 +1,61 @@
+name: deepphe-stack
+
+services:
+  # ----------------------------------------------------------------------------
+  # DeepPhe Data API (Node 24 / Express 5 / embedded SQLite).
+  # Its Dockerfile clones the upstream repo during build and bundles the fixture
+  # at /app/test/resources/deepphe.sqlite3, so this serves that database
+  # automatically with no local checkout, volume, or download step.
+  # ----------------------------------------------------------------------------
+  data-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: data-api
+      args:
+        DATA_API_REPO: ${DATA_API_REPO:-https://github.com/DeepPhe/dphe-data-api.git}
+        DATA_API_REF: ${DATA_API_REF:-main}
+    environment:
+      - NODE_ENV=production
+      - PORT=3333
+      # DB_PATH intentionally left unset -> uses the bundled fixture
+      # (./test/resources/deepphe.sqlite3, baked into the image). To serve a
+      # different DB instead, set DB_PATH and mount the file (see README).
+    expose:
+      - "3333"                 # in-network only; the web service proxies to it
+    # ports:
+    #   - "3333:3333"          # uncomment to reach Swagger at http://localhost:3333/docs
+    restart: unless-stopped
+    networks: [deepphe]
+
+  # ----------------------------------------------------------------------------
+  # DeepPhe Visualizer v2 (React 18 / MUI / CRACO).
+  # Built with OUR Dockerfile, NOT the repo's committed one. The committed image
+  # bakes http://localhost:3333 into the bundle and serves it with a static-only
+  # server, so it can't reach the API container. Ours clones the upstream repo
+  # during build, builds same-origin ("/"), and runs the repo's real serve.js,
+  # which forwards /v1/deepphe-api/* to DEEPPHE_API_LOCATION at runtime (no CORS).
+  # ----------------------------------------------------------------------------
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: web
+      args:
+        WEB_REPO: ${WEB_REPO:-https://github.com/DeepPhe/DeepPhe-Visualizer-v2.git}
+        WEB_REF: ${WEB_REF:-main}
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DEEPPHE_API_LOCATION=http://data-api:3333
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+    depends_on:
+      data-api:
+        condition: service_healthy     # data-api image defines a HEALTHCHECK
+    restart: unless-stopped
+    networks: [deepphe]
+
+networks:
+  deepphe:
+    driver: bridge
