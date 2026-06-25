@@ -10,6 +10,6 @@ set -euo pipefail
 docker compose up --build -d
 
 echo
-echo "DeepPhe Visualizer:  http://localhost:${WEB_PORT:-3000}"
+echo "DeepPhe Visualizer:  http://localhost:${VIZ_PORT:-3000}"
 echo "Logs:                docker compose logs -f"
 echo "Stop:                docker compose down"

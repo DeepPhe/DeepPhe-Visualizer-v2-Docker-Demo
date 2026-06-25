@@ -1,0 +1,17 @@
+.env
+.DS_Store
+
+# Local dependency/build output if upstream repos are ever checked out here.
+node_modules/
+build/
+dist/
+coverage/
+
+# Local upstream checkouts are not required; Docker clones upstreams at build time.
+dphe-data-api/
+DeepPhe-Visualizer-v2/
+
+# Logs and temporary files.
+*.log
+tmp/
+temp/

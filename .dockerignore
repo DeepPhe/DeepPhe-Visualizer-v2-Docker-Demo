@@ -1,0 +1,7 @@
+# Keep the Docker build context tiny. The Dockerfile clones both upstream repos
+# during the build, and only needs this proxy entrypoint from the local project.
+**
+
+!Dockerfile
+!viz-server.js
+!.dockerignore

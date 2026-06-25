@@ -1,4 +1,4 @@
-name: deepphe-stack
+name: visualizer-demo
 
 services:
   # ----------------------------------------------------------------------------
@@ -22,7 +22,7 @@ services:
       # (./test/resources/deepphe.sqlite3, baked into the image). To serve a
       # different DB instead, set DB_PATH and mount the file (see README).
     expose:
-      - "3333"                 # in-network only; the web service proxies to it
+      - "3333"                 # in-network only; the viz service proxies to it
     # ports:
     #   - "3333:3333"          # uncomment to reach Swagger at http://localhost:3333/docs
     restart: unless-stopped
@@ -33,23 +33,23 @@ services:
   # Built with OUR Dockerfile, NOT the repo's committed one. The committed image
   # bakes http://localhost:3333 into the bundle and serves it with a static-only
   # server, so it can't reach the API container. Ours clones the upstream repo
-  # during build, builds same-origin ("/"), and runs the repo's real serve.js,
-  # which forwards /v1/deepphe-api/* to DEEPPHE_API_LOCATION at runtime (no CORS).
+  # during build, builds same-origin ("/"), and runs viz-server.js, which
+  # forwards /v1/deepphe-api/* to DEEPPHE_API_LOCATION at runtime (no CORS).
   # ----------------------------------------------------------------------------
-  web:
+  viz:
     build:
       context: .
       dockerfile: Dockerfile
-      target: web
+      target: viz
       args:
-        WEB_REPO: ${WEB_REPO:-https://github.com/DeepPhe/DeepPhe-Visualizer-v2.git}
-        WEB_REF: ${WEB_REF:-main}
+        VIZ_REPO: ${VIZ_REPO:-https://github.com/DeepPhe/DeepPhe-Visualizer-v2.git}
+        VIZ_REF: ${VIZ_REF:-main}
     environment:
       - NODE_ENV=production
       - PORT=3000
       - DEEPPHE_API_LOCATION=http://data-api:3333
     ports:
-      - "${WEB_PORT:-3000}:3000"
+      - "${VIZ_PORT:-3000}:3000"
     depends_on:
       data-api:
         condition: service_healthy     # data-api image defines a HEALTHCHECK

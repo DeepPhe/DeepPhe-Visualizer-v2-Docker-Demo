@@ -4,7 +4,7 @@
 #
 # Compose builds two targets from this file:
 #   - data-api: clones and runs DeepPhe/dphe-data-api
-#   - web: clones and runs DeepPhe/DeepPhe-Visualizer-v2
+#   - viz: clones and runs DeepPhe/DeepPhe-Visualizer-v2
 
 FROM node:24-bookworm-slim AS data-api-source
 
@@ -51,25 +51,27 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
 
 CMD ["npm", "start"]
 
-FROM node:20-alpine AS web-source
+FROM node:20-alpine AS viz-source
 
-ARG WEB_REPO=https://github.com/DeepPhe/DeepPhe-Visualizer-v2.git
-ARG WEB_REF=main
+ARG VIZ_REPO=https://github.com/DeepPhe/DeepPhe-Visualizer-v2.git
+ARG VIZ_REF=main
 
 RUN apk add --no-cache git
 
-RUN git clone --depth 1 --branch "${WEB_REF}" "${WEB_REPO}" /src \
+RUN git clone --depth 1 --branch "${VIZ_REF}" "${VIZ_REPO}" /src \
     && rm -rf /src/.git
 
-FROM node:20-alpine AS web
+FROM node:20-alpine AS viz
 
 WORKDIR /app
 
-COPY --from=web-source /src/ ./
+COPY --from=viz-source /src/ ./
 
 # Install all dependencies because CRACO build tools live in devDependencies.
 RUN npm install --legacy-peer-deps \
     && REACT_APP_DEEPPHE_API_LOCATION=/ npm run build
+
+COPY viz-server.js ./docker-viz-server.js
 
 ENV NODE_ENV=production \
     PORT=3000 \
@@ -80,4 +82,4 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
   CMD node -e "require('http').get('http://127.0.0.1:'+(process.env.PORT||3000),r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"
 
-CMD ["node", "serve.js"]
+CMD ["node", "docker-viz-server.js"]
