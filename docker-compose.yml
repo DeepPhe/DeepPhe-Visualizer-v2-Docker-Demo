@@ -18,9 +18,11 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3333
-      # DB_PATH intentionally left unset -> uses the bundled fixture
-      # (./test/resources/deepphe.sqlite3, baked into the image). To serve a
-      # different DB instead, set DB_PATH and mount the file (see README).
+      # The image defaults DB_PATH to the 500-patient fixture
+      # (./test/resources/deepphe-500.sqlite3). Both fixtures ship in the image;
+      # uncomment below to serve the small 7-patient demo set instead, or set
+      # DB_PATH and mount a file to serve a DB that isn't in the repo (see README).
+      # - DB_PATH=./test/resources/deepphe.sqlite3
     expose:
       - "3333"                 # in-network only; the viz service proxies to it
     # ports:

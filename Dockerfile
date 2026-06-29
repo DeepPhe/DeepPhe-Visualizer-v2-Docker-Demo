@@ -30,7 +30,7 @@ FROM node:24-bookworm-slim AS data-api
 
 ENV NODE_ENV=production \
     PORT=3333 \
-    DB_PATH=./test/resources/deepphe.sqlite3
+    DB_PATH=./test/resources/deepphe-500.sqlite3
 
 WORKDIR /app
 

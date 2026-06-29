@@ -7,7 +7,10 @@ set -euo pipefail
 [ -f .env ] || cp .env.example .env
 
 # Build images and start detached.
-docker compose up --build -d
+# --no-cache forces fresh `git clone` layers so the latest upstream main
+# (including the bundled SQLite fixtures) is pulled instead of a stale cache.
+docker compose build --no-cache
+docker compose up -d
 
 echo
 echo "DeepPhe Visualizer:  http://localhost:${VIZ_PORT:-3000}"

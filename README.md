@@ -1,13 +1,14 @@
 # Visualizer Stack
 
 One `docker compose` bring-up of the DeepPhe Visualizer v2 backed by the
-DeepPhe Data API, serving the data-api's bundled sample SQLite database.
+DeepPhe Data API, serving the data-api's bundled 500-patient SQLite database.
 
 - **data-api** — [`DeepPhe/dphe-data-api`](https://github.com/DeepPhe/dphe-data-api)
   (Node 24 / Express 5 / embedded SQLite), built from the `data-api`
   Dockerfile target.
-  Serves the fixture `test/resources/deepphe.sqlite3` that ships inside the
-  image. Listens on `:3333`, API base `/v1/deepphe-api/deepphe/...`.
+  Serves the fixture `test/resources/deepphe-500.sqlite3` that ships inside the
+  image (the smaller `deepphe.sqlite3` is bundled too). Listens on `:3333`,
+  API base `/v1/deepphe-api/deepphe/...`.
 - **viz** — [`DeepPhe/DeepPhe-Visualizer-v2`](https://github.com/DeepPhe/DeepPhe-Visualizer-v2)
   (React 18 / MUI / CRACO), built from the `viz` Dockerfile target. Listens on
   `:3000` and reverse-proxies `/v1/deepphe-api/*` to the data-api.
@@ -66,9 +67,11 @@ upstream `serve.js` proxy stack in this container.
 
 ## Serving a different database
 
-The data-api image bundles `test/resources/deepphe.sqlite3` and defaults
-`DB_PATH` to it. To serve your own DB instead, mount it and override `DB_PATH`
-on the `data-api` service:
+The data-api image bundles two fixtures: `test/resources/deepphe-500.sqlite3`
+(500 patients, the default this stack serves) and `test/resources/deepphe.sqlite3`
+(7 patients). Switch between them by editing `DB_PATH` on the `data-api`
+service. To serve your own DB that isn't in the repo, mount it and override
+`DB_PATH`:
 
 ```yaml
     environment:
